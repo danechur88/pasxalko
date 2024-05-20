@@ -1,0 +1,214 @@
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <time.h>
+
+
+int poluchenieKolichestvaNenulvyhStolbcov(int** matrica, int stroka, int stolbec);
+int summaPolozhitelnyhChetnyhElementov(int stroka[], int stolbec);
+void sortirovkaStrokPoHarakteristike(int** matrica, int stroka, int stolbec);
+bool magicheskijKvadrat(int** matrica, int stroka, int stolbec);
+void peremeshenieVVerhnijLevyjUgol(int** matrica, int stroka, int stolbec);
+void vivodMatricy(int** matrica, int stroka, int stolbec);
+int main() {
+    srand(time(NULL));
+
+    int stroka, stolbec;
+    printf("Введите количество строк: ");
+    scanf("%d", &stroka);
+    printf("Введите количество столбцов: ");
+    scanf("%d", &stolbec);
+    
+
+    int **matrica = malloc(stroka * sizeof(int*));
+    for (int i = 0; i < stroka; i++) {
+        matrica[i] = malloc(stolbec * sizeof(int));
+    }
+
+
+    bool random;
+    int random_int;
+    printf("Введите 1 для рандомного заполнения матрицы или 0 для заполнения с клавиатуры: ");
+    scanf("%d", &random_int);
+    random = (bool)random_int;
+    if (random == 1) {
+        // Заполнение матрицы случайными числами
+        for (int i = 0; i < stroka; i++) {
+            for (int j = 0; j < stolbec; j++) {
+                matrica[i][j] = rand() % 201 - 100; // Генерация чисел от -100 до 100
+            }
+        }
+    } else {
+        // Заполнение матрицы с клавиатуры
+        for (int i = 0; i < stroka; i++) {
+            for (int j = 0; j < stolbec; j++) {
+                printf("Введите элемент [%d][%d]: ", i, j);
+                scanf("%d", &matrica[i][j]);
+            }
+        }
+    }
+
+
+    printf("Исходная матрица:\n");
+    vivodMatricy((int**)matrica, stroka, stolbec);
+
+    int vybor;
+    printf("\nВведите:\n1 для подсчета количество столбцов, не содержащих ни одного нулевого элемента\n2 для сортировке матрицы по характеристике\n3 для проверки на магический квадрат,\n4 для перестановки строк и стобцов, так что бы наибольший элемент оказался в верхнем левом углу ");
+    scanf("%d", &vybor);
+
+    switch (vybor) {
+        case 1:
+            printf("Количество столбцов, не содержащих ни одного нулевого элемента: %d\n", poluchenieKolichestvaNenulvyhStolbcov((int**)matrica, stroka, stolbec));
+            break;
+        case 2:
+            sortirovkaStrokPoHarakteristike((int**)matrica, stroka, stolbec);
+            printf("Матрица после сортировке строк по характеристике:\n");
+            vivodMatricy((int**)matrica, stroka, stolbec);
+            break;
+        case 3:
+            if (magicheskijKvadrat((int**)matrica, stroka, stolbec)) {
+                printf("Матрица является магическим квадратом.\n");
+            } else {
+                printf("Матрица не является магическим квадратом.\n");
+            }
+            break;
+        case 4:
+            peremeshenieVVerhnijLevyjUgol((int**)matrica, stroka, stolbec);
+            printf("Матрица после перестановки столбцов и строк:\n");
+            vivodMatricy((int**)matrica, stroka, stolbec);
+            break;
+        default:
+            printf("Неверный ввод.\n");
+            break;
+    }
+    for (int i = 0; i < stroka; i++) {
+        free(matrica[i]);
+    }
+    free(matrica);
+    return 0;
+}
+
+int poluchenieKolichestvaNenulvyhStolbcov(int** matrica, int stroka, int stolbec) {
+    // проходим по матрице если флаг поднят то +1
+    int count = 0;
+    for (int j = 0; j < stolbec; j++) {
+        int imeetNul = 0;
+        for (int i = 0; i < stroka; i++) {
+            if (matrica[i][j] == 0) {
+                imeetNul = 1;
+                break;
+            }
+        }
+        if (!imeetNul) {
+            count++;
+        }
+    }
+    return count;
+}
+
+int summaPolozhitelnyhChetnyhElementov(int* stroka, int stolbec) {
+    // сумма всех четных положит элементов
+    int summa = 0;
+    for (int i = 0; i < stolbec; i++) {
+        if (stroka[i] > 0 && stroka[i] % 2 == 0) {
+            summa += stroka[i];
+        }
+    }
+    return summa;
+}
+
+void sortirovkaStrokPoHarakteristike(int** matrica, int stroka, int stolbec) {
+    int harakteristiki[stroka];
+    for (int i = 0; i < stroka; i++) {
+        // массив с суммой для каждой строки
+        harakteristiki[i] = summaPolozhitelnyhChetnyhElementov(matrica[i], stolbec);
+    }
+// сортировка пузырьком, если harakteristiki[j] > harakteristiki[j + 1] то меняются местами
+    for (int i = 0; i < stroka - 1; i++) {
+        for (int j = 0; j < stroka - i - 1; j++) {
+            if (harakteristiki[j] > harakteristiki[j + 1]) {
+                int temp = harakteristiki[j];
+                harakteristiki[j] = harakteristiki[j + 1];
+                harakteristiki[j + 1] = temp;
+
+                int tempStroka[stolbec];
+                for (int k = 0; k < stolbec; k++) {
+                    tempStroka[k] = matrica[j][k];
+                    matrica[j][k] = matrica[j + 1][k];
+                    matrica[j + 1][k] = tempStroka[k];
+                }
+            }
+        }
+    }
+}
+
+bool magicheskijKvadrat(int** matrica, int stroka, int stolbec) {
+    //сумма первой строки
+    int summa = 0;
+    for (int i = 0; i < stolbec; i++) {
+        summa += matrica[0][i];
+    }
+// проверка строк равна ли строка == summa
+    for (int i = 1; i < stroka; i++) {
+        int summaStroki = 0;
+        for (int j = 0; j < stolbec; j++) {
+            summaStroki += matrica[i][j];
+        }
+        if (summaStroki != summa) {
+            return false;
+        }
+    }
+// проверка строк равен ли столбец == summa
+    for (int i = 0; i < stolbec; i++) {
+        int summaStolbca = 0;
+        for (int j = 0; j < stroka; j++) {
+            summaStolbca += matrica[j][i];
+        }
+        if (summaStolbca != summa) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void peremeshenieVVerhnijLevyjUgol(int** matrica, int stroka, int stolbec) {
+    int maksimum = matrica[0][0];
+    int strokaMaksimuma = 0;
+    int stolbecMaksimuma = 0;
+
+    // Находим максимальный элемент
+    for (int i = 0; i < stroka; i++) {
+        for (int j = 0; j < stolbec; j++) {
+            if (matrica[i][j] > maksimum) {
+                maksimum = matrica[i][j];
+                strokaMaksimuma = i;
+                stolbecMaksimuma = j;
+            }
+        }
+    }
+
+    // Переставляем строку с максимальным элементом в верх
+    int tempStroka[stolbec];
+    for (int j = 0; j < stolbec; j++) {
+        tempStroka[j] = matrica[0][j];
+        matrica[0][j] = matrica[strokaMaksimuma][j];
+        matrica[strokaMaksimuma][j] = tempStroka[j];
+    }
+
+    // Переставляем столбец с максимальным элементом в лево
+    for (int i = 0; i < stroka; i++) {
+        int temp = matrica[i][0];
+        matrica[i][0] = matrica[i][stolbecMaksimuma];
+        matrica[i][stolbecMaksimuma] = temp;
+    }
+}
+
+void vivodMatricy(int** matrica, int stroka, int stolbec) {
+    for (int i = 0; i < stroka; i++) {
+        for (int j = 0; j < stolbec; j++) {
+            printf("%d ", matrica[i][j]);
+        }
+        printf("\n");
+    }
+}

@@ -1,29 +1,81 @@
 #include <stdio.h>
+#include <string.h>
+
+#define NUM_STUDENTS 10
+#define NUM_GRADES 5
+
+typedef struct {
+    char familiyaIInicialy[55];
+    int nomerGruppy;
+    int ocenki[NUM_GRADES];
+} STUDENT;
+
+void vvodStudentov(STUDENT students[], int num);
+void sortirovkaStudentovPoSrednemu(STUDENT students[], int num);
+void pechatLuchshihStudentov(STUDENT students[], int num);
 
 int main() {
-    int arr[] = {1, 2, 3, 4, 1, 2, 3, 4, 5}; // пример массива
-    int size = sizeof(arr) / sizeof(arr[0]); // размер массива
+    STUDENT students[NUM_STUDENTS];
 
-    int uniqueValues = 0;
-
-    // Создаем массив для отметки уже встреченных значений
-    int foundValues[size];
-
-    // Инициализируем массив foundValues нулями
-    for (int i = 0; i < size; ++i) {
-        foundValues[i] = 0;
-    }
-
-    // Проходим по всем элементам массива
-    for (int i = 0; i < size; ++i) {
-        // Если значение встречается впервые, увеличиваем счетчик уникальных значений
-        if (foundValues[arr[i]] == 0) {
-            foundValues[arr[i]] = 1;
-            uniqueValues++;
-        }
-    }
-
-    printf("Число различных значений в массиве: %d\n", uniqueValues);
+    vvodStudentov(students, NUM_STUDENTS);
+    sortirovkaStudentovPoSrednemu(students, NUM_STUDENTS);
+    pechatLuchshihStudentov(students, NUM_STUDENTS);
 
     return 0;
+}
+
+void vvodStudentov(STUDENT students[], int num) {
+    for (int i = 0; i < num; i++) {
+        printf("Ввод фамилии и инциалов: ");
+        scanf(" %[^\n]s", students[i].familiyaIInicialy);
+        printf("Ввод номера группы: ");
+        scanf("%d", &students[i].nomerGruppy);
+        printf("Ввод пяти оценок: ");
+        for (int j = 0; j < NUM_GRADES; j++) {
+            scanf("%d", &students[i].ocenki[j]);
+        }
+    }
+}
+
+void sortirovkaStudentovPoSrednemu(STUDENT students[], int num) {
+    for (int i = 0; i < num - 1; i++) {
+        for (int j = 0; j < num - i - 1; j++) {
+            float avg1 = 0, avg2 = 0;
+            for (int k = 0; k < NUM_GRADES; k++) {
+                avg1 += students[j].ocenki[k];
+                avg2 += students[j + 1].ocenki[k];
+            }
+            avg1 /= NUM_GRADES;
+            avg2 /= NUM_GRADES;
+            if (avg1 > avg2) {
+                STUDENT temp = students[j];
+                students[j] = students[j + 1];
+                students[j + 1] = temp;
+            }
+        }
+    }
+}
+
+void pechatLuchshihStudentov(STUDENT students[], int num) {
+    int found = 0;
+    for (int i = 0; i < num; i++) {
+        int vseOcenkiVysokie = 1;
+        for (int j = 0; j < NUM_GRADES; j++) {
+            if (students[i].ocenki[j] < 4) {
+                vseOcenkiVysokie = 0;
+                break;
+            }
+        }
+        if (vseOcenkiVysokie) {
+            printf("Фамилия и инициалы: %s, Номер группы: %d, Оценки: ", students[i].familiyaIInicialy, students[i].nomerGruppy);
+            for (int j = 0; j < NUM_GRADES; j++) {
+                printf("%d ", students[i].ocenki[j]);
+            }
+            printf("\n");
+            found = 1;
+        }
+    }
+    if (!found) {
+        printf("Нет умных студентов.\n");
+    }
 }
